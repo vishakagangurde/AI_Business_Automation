@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🤖 AI Automation Workflows with n8n
+# AI Automation Workflows with n8n
 
 ### Production-Ready AI Agents, Business Automation & Enterprise Workflow Solutions
 
@@ -12,21 +12,21 @@
   <img src="https://img.shields.io/badge/License-MIT-orange?style=for-the-badge"/>
 </p>
 
-### 🚀 A curated collection of production-ready AI automation workflows built using n8n, LLMs, APIs, and enterprise integrations.
+###  A curated collection of production-ready AI automation workflows built using n8n, LLMs, APIs, and enterprise integrations.
 
-⭐ **2 Workflows Published on the Official n8n Workflow Library**
+ **2 Workflows Published on the Official n8n Workflow Library**
 
 </div>
 
 ---
 
-# 🏆 Official n8n Workflow Contributor
+#  Official n8n Workflow Contributor
 
 I'm proud to have contributed AI automation workflows that have been officially published in the **n8n Workflow Library**.
 
 ## Published Workflows
 
-### 📈 Analyze Commodity Portfolio Diversification with Google Sheets, Gemini & Gmail
+###  Analyze Commodity Portfolio Diversification with Google Sheets, Gemini & Gmail
 
 Automates commodity portfolio diversification analysis using **Google Sheets**, **Google Gemini**, and **Gmail** to generate AI-powered investment insights and diversification reports.
 
@@ -34,7 +34,7 @@ Automates commodity portfolio diversification analysis using **Google Sheets**, 
 
 ---
 
-### 📰 Summarize Regulatory News using NewsAPI, Gemini & Google Sheets
+###  Summarize Regulatory News using NewsAPI, Gemini & Google Sheets
 
 Automatically fetches regulatory news from **NewsAPI**, summarizes articles using **Google Gemini**, stores structured insights in **Google Sheets**, and includes automated error alerts for robust monitoring.
 
@@ -44,18 +44,18 @@ Automatically fetches regulatory news from **NewsAPI**, summarizes articles usin
 
 These published workflows demonstrate practical expertise in:
 
-- 🤖 AI Agents
-- 🧠 Large Language Models (LLMs)
-- 🔄 Workflow Automation
-- 🌐 API Integrations
-- 📊 Data Processing
-- ☁️ Google Workspace Automation
-- 📈 Business Intelligence
-- ⚙️ Production-Ready Workflow Design
+-  AI Agents
+-  Large Language Models (LLMs)
+-  Workflow Automation
+-  API Integrations
+-  Data Processing
+-  Google Workspace Automation
+-  Business Intelligence
+-  Production-Ready Workflow Design
 
 ---
 
-# 📖 About This Repository
+#  About This Repository
 
 This repository contains a growing collection of **real-world AI automation workflows** built with **n8n**.
 
@@ -65,25 +65,25 @@ The objective is to demonstrate practical AI Engineering skills through real pro
 
 ---
 
-# ✨ Features
+#  Features
 
-- 🤖 AI-Powered Agents
-- ⚡ Production-Ready Workflows
-- 🧠 LLM Integrations
-- 📧 Email Automation
-- 📊 CRM Automation
-- 📱 Slack & Telegram Bots
-- 🌐 REST API Integrations
-- 📄 Document Processing
-- 📈 Reporting Automation
-- 🔔 Notification Systems
-- ⚙️ Error Handling
-- 🔄 Event-Driven Architecture
-- 📦 Easy Import into n8n
+-  AI-Powered Agents
+-  Production-Ready Workflows
+-  LLM Integrations
+-  Email Automation
+-  CRM Automation
+-  Slack & Telegram Bots
+-  REST API Integrations
+-  Document Processing
+-  Reporting Automation
+-  Notification Systems
+-  Error Handling
+-  Event-Driven Architecture
+-  Easy Import into n8n
 
 ---
 
-# 🛠️ Tech Stack
+#  Tech Stack
 
 ## Workflow Automation
 
@@ -126,7 +126,7 @@ The objective is to demonstrate practical AI Engineering skills through real pro
 
 ---
 
-# 📂 Repository Structure
+#  Repository Structure
 
 ```
 AI-Automation-Workflows
@@ -147,57 +147,57 @@ AI-Automation-Workflows
 
 ---
 
-# 🚀 Workflow Categories
+#  Workflow Categories
 
-### 🤖 AI Agents
+###  AI Agents
 
 Autonomous AI agents powered by LLMs capable of intelligent decision-making.
 
 ---
 
-### 📧 Email Automation
+###  Email Automation
 
 Smart email processing, classification, drafting, and notifications.
 
 ---
 
-### 📊 Google Workspace Automation
+###  Google Workspace Automation
 
 Automating Google Sheets, Gmail, Drive, and Docs.
 
 ---
 
-### 📈 Reporting & Analytics
+###  Reporting & Analytics
 
 Generate reports, dashboards, and business insights automatically.
 
 ---
 
-### 🌐 API Integrations
+###  API Integrations
 
 Integrate external services using REST APIs and Webhooks.
 
 ---
 
-### 💬 Chatbots
+###  Chatbots
 
 AI-powered conversational assistants.
 
 ---
 
-### 📰 News Automation
+###  News Automation
 
 Collect, summarize, classify, and distribute news using AI.
 
 ---
 
-### ⚙️ Business Process Automation
+###  Business Process Automation
 
 Automate repetitive business workflows.
 
 ---
 
-# 📥 Getting Started
+#  Getting Started
 
 ## 1. Clone Repository
 
@@ -226,7 +226,7 @@ or use Docker.
 
 ---
 
-# 🔑 Configure Credentials
+#  Configure Credentials
 
 Depending on the workflow, you may need:
 
@@ -243,35 +243,35 @@ Depending on the workflow, you may need:
 
 ---
 
-# 💡 Example Use Cases
+#  Example Use Cases
 
-✅ AI Email Assistant
+- AI Email Assistant
 
-✅ Regulatory News Summarization
+-  Regulatory News Summarization
 
-✅ Commodity Portfolio Analysis
+- Commodity Portfolio Analysis
 
-✅ Customer Support Automation
+- Customer Support Automation
 
-✅ Lead Qualification
+- Lead Qualification
 
-✅ CRM Synchronization
+- CRM Synchronization
 
-✅ AI Document Processing
+- AI Document Processing
 
-✅ Meeting Notes Summarization
+- Meeting Notes Summarization
 
-✅ Business Reporting
+- Business Reporting
 
-✅ Slack Notifications
+- Slack Notifications
 
-✅ Telegram Bots
+- Telegram Bots
 
-✅ Google Workspace Automation
+- Google Workspace Automation
 
 ---
 
-# 🎯 Skills Demonstrated
+#  Skills Demonstrated
 
 This repository showcases expertise in:
 
@@ -291,7 +291,7 @@ This repository showcases expertise in:
 
 ---
 
-# 🤝 Contributing
+#  Contributing
 
 Contributions are welcome!
 
@@ -305,19 +305,19 @@ Feel free to:
 
 ---
 
-# ⭐ Support
+#  Support
 
 If you find this repository useful:
 
-⭐ Star the repository
+ Star the repository
 
-🍴 Fork the repository
+ Fork the repository
 
-📢 Share it with others
+ Share it with others
 
 ---
 
-# 👩‍💻 About Me
+#  About Me
 
 **Vishaka Gangurde**
 
@@ -325,11 +325,11 @@ AI Engineer | Generative AI | Machine Learning | Workflow Automation | Python | 
 
 ### Connect with me
 
-🐙 GitHub
+ GitHub
 
 https://github.com/vishakagangurde
 
-💼 LinkedIn
+ LinkedIn
 
 https://www.linkedin.com/in/vishakagangurde/
 
@@ -337,8 +337,8 @@ https://www.linkedin.com/in/vishakagangurde/
 
 <div align="center">
 
-## 🚀 Building Intelligent AI Automations That Solve Real Business Problems
+##  Building Intelligent AI Automations That Solve Real Business Problems
 
-### ⭐ If you like this repository, don't forget to Star it!
+###  If you like this repository, don't forget to Star it!
 
 </div>
