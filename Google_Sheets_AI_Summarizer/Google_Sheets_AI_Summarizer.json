@@ -1,0 +1,551 @@
+{
+  "name": "Google_Sheets_AI_Summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "384cf48e-2c5e-480c-bc7d-56b8a975f2a1",
+              "leftValue": "={{ $json[\"Description\"].length }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        128,
+        -240
+      ],
+      "id": "f7239660-b41f-4a0f-8b85-06a0ffa65028",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the first input item\nconst input = $input.first().json;\n\n// ✅ Correct way to extract summary from Gemini\nconst summary = input.text || 'No content available';\n\n// Extra metadata\nconst charCount = summary.length + \" chars\";\nconst timestamp = new Date().toISOString();\n\n// ✅ Return properly structured data (VERY IMPORTANT)\nreturn [{\n  json: {\n    ID: input.ID,                     // preserve ID for update\n    Topic: input.Topic,               // keep original fields\n    Description: input.Description,\n    \n    Summary: $input.first().json.content.parts[0].text,                 // generated\n    Status: \"Done\"\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        -336
+      ],
+      "id": "4b8d6e5b-bd18-453f-8bf7-e37d97d56a1a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1024,
+        -224
+      ],
+      "id": "7fb96fc3-58b5-40e9-8591-87301edff4da",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1ypxsnDj5Rl3UdiJI5aXSAZ-NQOpuf_5Axhlk6nx2qBo",
+          "mode": "list",
+          "cachedResultName": "sample_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypxsnDj5Rl3UdiJI5aXSAZ-NQOpuf_5Axhlk6nx2qBo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1638555906,
+          "mode": "list",
+          "cachedResultName": "AI Topics",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypxsnDj5Rl3UdiJI5aXSAZ-NQOpuf_5Axhlk6nx2qBo/edit#gid=1638555906"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Summary": "={{ $('Code in JavaScript').item.json.Summary }}",
+            "ID": "={{ $('Append row in sheet').item.json.ID }}",
+            "Topic": "={{ $('Append row in sheet').item.json.Topic }}",
+            "Description": "={{ $('Append row in sheet').item.json.Description }}",
+            "row_number": 0,
+            "Status": "={{ $json.Status }}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "finishReason",
+              "displayName": "finishReason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "index",
+              "displayName": "index",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "SummaryLength",
+              "displayName": "SummaryLength",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ProcessedAt",
+              "displayName": "ProcessedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1200,
+        -224
+      ],
+      "id": "d6bade7a-2d2b-4e4f-a51f-2260ef59fb03",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WmLu1rigLzdtmLos",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f6b146f0-955f-47f8-8fe8-2c3b4e746689",
+              "name": "Summary",
+              "value": "={{ $('On form submission').item.json.Summary }}",
+              "type": "string"
+            },
+            {
+              "id": "86f88a7f-fa21-408a-99df-4a9a723c7627",
+              "name": " Status",
+              "value": "'Skipped",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        432,
+        -112
+      ],
+      "id": "9f38b8d0-595b-4988-88b0-33fe87ce8436",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "formTitle": "sample_sheet",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "ID",
+              "fieldType": "number"
+            },
+            {
+              "fieldLabel": "Topic"
+            },
+            {
+              "fieldLabel": "Description"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -336,
+        -240
+      ],
+      "id": "7d81de5f-7092-406a-a14a-6d0d5a01252a",
+      "name": "On form submission",
+      "webhookId": "5ae06359-1c2a-4125-912c-c88b1b74ca79"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ypxsnDj5Rl3UdiJI5aXSAZ-NQOpuf_5Axhlk6nx2qBo",
+          "mode": "list",
+          "cachedResultName": "sample_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypxsnDj5Rl3UdiJI5aXSAZ-NQOpuf_5Axhlk6nx2qBo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1638555906,
+          "mode": "list",
+          "cachedResultName": "AI Topics",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypxsnDj5Rl3UdiJI5aXSAZ-NQOpuf_5Axhlk6nx2qBo/edit#gid=1638555906"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "={{ $json.ID }}",
+            "Description": "={{ $json.Description }}",
+            "Topic": "={{ $json.Topic }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "finishReason",
+              "displayName": "finishReason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "index",
+              "displayName": "index",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "SummaryLength",
+              "displayName": "SummaryLength",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProcessedAt",
+              "displayName": "ProcessedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -96,
+        -240
+      ],
+      "id": "18a226bb-d1f9-45ce-9e84-0be5ee9088c7",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "AFlKXrdW8UlYW3pb",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Summarize the following text in under 200 characters. \n\n\n{{ $json[\"Description\"] }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        -352
+      ],
+      "id": "761776fd-3476-4298-85c8-eaabe3dcda78",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ZUoYXEaSNRo9Jeyl",
+          "name": "Google Gemini(PaLM) Api account 5"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "cb1498ba-c7cf-44ed-bb3d-6f98fac37143",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f27739ea7ff3a87f7bf9c66c729159b4bef14582f083ae2ee9bbd27cecc68161"
+  },
+  "id": "LHndhObUbmt6G4Ya",
+  "tags": []
+}

@@ -1,0 +1,423 @@
+{
+  "name": "Slack Task Automation System",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const text = $input.item.json.body?.text?.trim();\nif (!text || text.length < 2) {\n  throw new Error('Task text is empty or too short');\n}\nif (text.length > 500) {\n  throw new Error('Task text too long (max 500 chars)');\n}\nreturn [{ json: { ...$input.item.json.body, text } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        16
+      ],
+      "id": "5f2c6491-29ff-439e-b8eb-14d35b649123",
+      "name": "Input Validator"
+    },
+    {
+      "parameters": {
+        "content": "## Slack Task Automation System\nThis workflow captures tasks from a Slack slash command, validates and processes the input, extracts task details like due date, stores the task in Google Sheets, creates a Google Task, and sends a confirmation back to the user.",
+        "height": 432,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1264,
+        -576
+      ],
+      "typeVersion": 1,
+      "id": "bdad464e-4dd3-44bf-a4b0-038a12480b74",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "The workflow begins with the Slack Slash Command Trigger (Webhook), which acts as the entry point. When a user types a command like /task submit report tomorrow in Slack, this node receives the request using a POST method and captures the complete raw data sent by Slack. Immediately after, the Instant Slack Acknowledgement (Respond to Webhook) node sends a quick response like “⏳ Processing your request...” back to Slack",
+        "height": 192,
+        "width": 464
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -864,
+        256
+      ],
+      "typeVersion": 1,
+      "id": "5ef859a1-ba2e-4a16-a441-0cf4020977c6",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "After receiving the request, the User Input Validation (Input Validator) node checks whether the task text is valid. It ensures the input is not empty, has a minimum length, and does not exceed the maximum limit, preventing incorrect or harmful data from entering the system. Once validated, the Task Processing & Smart Parsing Engine (Code in JavaScript) node processes the input by cleaning the text, extracting important details like task name, user information, and channel ID, and intelligently detecting due dates such as “today” or “tomorrow.” It also generates metadata like timestamps and unique IDs, preparing the data for storage and further actions.",
+        "height": 224,
+        "width": 464
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -240,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "11f29753-94a0-4886-8b2d-85ee281c23b1",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Finally, the Final Slack Response (Https request node) node sends a confirmation message back to the user in Slack after all processing is complete. It notifies the user that the task has been successfully saved and added to both Google Sheets and Google Tasks, ensuring clear feedback and completion of the workflow.",
+        "height": 208,
+        "width": 432
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        528,
+        272
+      ],
+      "typeVersion": 1,
+      "id": "0bbadc6c-0d88-4625-bb4c-d7ab6e464aef",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "slack-command",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -736,
+        16
+      ],
+      "id": "fd89d0f5-4bc2-4e31-9a94-0e92a81c5744",
+      "name": "Slack Slash Command Trigger",
+      "webhookId": "ca5fed1d-6b2d-4259-b13c-7715f9dccd78"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \n\"response_type\": \"ephemeral\", \"text\": \"⏳ Processing your request...\" \n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -496,
+        16
+      ],
+      "id": "7d213185-08b9-40f4-a713-6f0738f5888f",
+      "name": "Instant Slack Acknowledgement"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Safe body parsing — handles both string and object\nconst rawInput = $input.item.json;\nconst body = typeof rawInput.body === 'string' \n  ? JSON.parse(rawInput.body) \n  : (rawInput.body || rawInput);\n\n// Sanitize: prevent spreadsheet formula injection\nconst rawText = (body.text || '').trim();\nconst sanitizedText = rawText.replace(/^[=+\\-@]/, \"'$&\");\n\n// Idempotency key\nconst idempotencyKey = `${body.user_id || 'unknown'}-${body.command || 'task'}-${body.trigger_id || Date.now()}`;\n\n// Parse due date from natural language\nfunction parseDueDate(text) {\n  const lower = text.toLowerCase();\n  const now = new Date();\n  if (lower.includes('tomorrow')) {\n    now.setDate(now.getDate() + 1);\n    return now.toISOString().split('T')[0];\n  }\n  if (lower.includes('today')) {\n    return now.toISOString().split('T')[0];\n  }\n  const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];\n  for (let i = 0; i < days.length; i++) {\n    if (lower.includes(days[i])) {\n      const target = i;\n      const current = now.getDay();\n      const diff = (target - current + 7) % 7 || 7;\n      now.setDate(now.getDate() + diff);\n      return now.toISOString().split('T')[0];\n    }\n  }\n  return null;\n}\n\nconst dueDate = parseDueDate(sanitizedText);\n\nconst cleanText = sanitizedText\n  .replace(/\\b(today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\\b/gi, '')\n  .replace(/\\s{2,}/g, ' ')\n  .trim();\n\n// Guard: ensure cleanText is a non-empty string\nconst finalText = cleanText.length > 0 ? cleanText : rawText;\n\nreturn [{\n  json: {\n    text: String(finalText),\n    raw_text: String(rawText),\n    user_name: String(body.user_name || ''),\n    user_id: String(body.user_id || ''),\n    channel_id: String(body.channel_id || ''),\n    command: String(body.command || '/task'),\n    due_date: dueDate ? String(dueDate) : null,\n    idempotency_key: String(idempotencyKey),\n    timestamp: new Date().toISOString(),\n    status: 'pending'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        16
+      ],
+      "id": "1485ee5a-7576-4fc1-9a72-09487a8c1941",
+      "name": "Task Processing & Smart Parsing Engine"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "10pqrWhooV6opbfh_nn6vatoCtl0882C2yyAZSlL9_Kw",
+          "mode": "list",
+          "cachedResultName": "sample2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10pqrWhooV6opbfh_nn6vatoCtl0882C2yyAZSlL9_Kw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10pqrWhooV6opbfh_nn6vatoCtl0882C2yyAZSlL9_Kw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Task": "={{ $json.text }}",
+            "Requester": "={{ $json.user_name }}",
+            "Timestamp": "={{ $json.timestamp }}",
+            "Status": "={{ $json.status }}",
+            "Error": "\"Error: Failed to update Google Sheet. Please check credentials, permissions, and data format.\""
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Task",
+              "displayName": "Task",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Requester",
+              "displayName": "Requester",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Error",
+              "displayName": "Error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        320,
+        -208
+      ],
+      "id": "76f67276-17c0-4df7-9f27-ae82f2090e5d",
+      "name": "Task Logger (Google Sheets Storage)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RuID1Add5iZgOpU7",
+          "name": "sample account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "task": "MTQ1NDM1MTc4NjU2MDgzMTY0NjM6MDow",
+        "title": "={{ $json.text }}",
+        "additionalFields": {
+          "notes": "=Requested by  {{ $('Task Processing & Smart Parsing Engine').item.json.user_name }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleTasks",
+      "typeVersion": 1,
+      "position": [
+        320,
+        224
+      ],
+      "id": "284bd797-72a2-4a86-ab7e-b9d796c65566",
+      "name": "Task Creator (Google Tasks Integration)",
+      "retryOnFail": true,
+      "credentials": {
+        "googleTasksOAuth2Api": {
+          "id": "lc3dgmZ0jGqTDH6o",
+          "name": "Google Tasks OAuth2 API"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        640,
+        0
+      ],
+      "id": "88ab8dbe-7239-4d97-b5ad-d97fe836f68c",
+      "name": "Combine Results (Parallel Execution Join)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/commands/T0AQ9RSP6GH/10826834538369/NAoRYhc9xCER1AdJB8xz1Ppv",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"response_type\": \"ephemeral\",\n  \"text\": \"✅ Task saved! Added to sheet and Google Tasks.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1168,
+        240
+      ],
+      "id": "c8080d60-b428-4e62-9513-58e7b2747aa8",
+      "name": "Final Response to Slack"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e974e858-4af5-4de0-93dc-623e6e373529",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        864,
+        16
+      ],
+      "id": "4c412d1b-87a1-4982-a054-27ecd27c4b3b",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Input Validator": {
+      "main": [
+        [
+          {
+            "node": "Task Processing & Smart Parsing Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack Slash Command Trigger": {
+      "main": [
+        [
+          {
+            "node": "Instant Slack Acknowledgement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instant Slack Acknowledgement": {
+      "main": [
+        [
+          {
+            "node": "Input Validator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task Processing & Smart Parsing Engine": {
+      "main": [
+        [
+          {
+            "node": "Task Logger (Google Sheets Storage)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Task Creator (Google Tasks Integration)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task Logger (Google Sheets Storage)": {
+      "main": [
+        [
+          {
+            "node": "Combine Results (Parallel Execution Join)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task Creator (Google Tasks Integration)": {
+      "main": [
+        [
+          {
+            "node": "Combine Results (Parallel Execution Join)",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Combine Results (Parallel Execution Join)": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Response to Slack": {
+      "main": [
+        []
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Final Response to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "cf885754-105b-4f93-af68-d395a6344f3e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f27739ea7ff3a87f7bf9c66c729159b4bef14582f083ae2ee9bbd27cecc68161"
+  },
+  "id": "OIe0DZ1xFZbLk3eF",
+  "tags": []
+}
