@@ -1,7 +1,5 @@
 # Deal Escalation Risk Predictor
 
-## TL;DR — Quick Start Guide
-
 This workflow automatically analyzes Salesforce deals using Google Gemini AI to detect escalation risks and instantly notifies stakeholders via Slack. It fetches opportunities and recent activities, evaluates risk using predefined rules, and updates high-risk deals directly in Salesforce.
 
 ### Quick Implementation Steps
