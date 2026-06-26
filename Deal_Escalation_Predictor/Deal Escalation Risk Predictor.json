@@ -1,0 +1,624 @@
+{
+  "name": "Deal Escalation Risk Predictor copy",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        864,
+        528
+      ],
+      "id": "bce6c7a7-7cf9-4f29-a2c3-814b75792b5e",
+      "name": "Start Deal Risk Analysis"
+    },
+    {
+      "parameters": {
+        "resource": "opportunity",
+        "operation": "getAll",
+        "limit": 10,
+        "options": {
+          "conditionsUi": {
+            "conditionValues": []
+          }
+        }
+      },
+      "type": "n8n-nodes-base.salesforce",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        432
+      ],
+      "id": "43efc2f8-7056-4083-a791-a521790ff537",
+      "name": "Fetch Open Opportunities",
+      "credentials": {
+        "salesforceOAuth2Api": {
+          "id": "sC9c1n9XqdOH5TdT",
+          "name": "Salesforce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "search",
+        "query": "=SELECT Id, Subject, Status, Priority, WhatId \nFROM Task \nWHERE WhatId != NULL \nAND CreatedDate = LAST_N_DAYS:30"
+      },
+      "type": "n8n-nodes-base.salesforce",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        624
+      ],
+      "id": "44fe6814-6372-4920-bc3e-79fd9701fc1b",
+      "name": "Fetch Recent Activities (Last 30 Days)",
+      "credentials": {
+        "salesforceOAuth2Api": {
+          "id": "sC9c1n9XqdOH5TdT",
+          "name": "Salesforce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "Id",
+              "field2": "WhatId"
+            }
+          ]
+        },
+        "joinMode": "enrichInput1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1344,
+        528
+      ],
+      "id": "0fbf651c-d3d8-4734-a5fe-d59afab1347e",
+      "name": "Map Opportunities with Activities",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const dealsMap = {};\n\nfor (const item of $input.all()) {\n  const data = item.json;\n  const dealId = data.WhatId || data.Id;\n\n  if (!dealsMap[dealId]) {\n    dealsMap[dealId] = {\n      Id: dealId,\n      Amount: data.Amount || 0,\n      Probability: data.Probability || 0,\n      Type: data.Type || \"N/A\",\n      activities: [],\n      allActivitiesCompleted: true\n    };\n  }\n\n  if (data.Subject) {\n    dealsMap[dealId].activities.push({\n      subject: data.Subject,\n      status: data.Status,\n      priority: data.Priority\n    });\n\n    //  If ANY activity is not completed → false\n    if (data.Status !== \"Completed\") {\n      dealsMap[dealId].allActivitiesCompleted = false;\n    }\n  }\n}\n\nreturn Object.values(dealsMap).map(deal => ({ json: deal }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        528
+      ],
+      "id": "5226b08c-ea0d-4a15-a3bc-3ffbe7b0728c",
+      "name": "Build Deal Context for Risk Analysis"
+    },
+    {
+      "parameters": {
+        "content": "## Deal Data Intake & Activity Mapping\n\nFetches all open opportunities and recent activities from Salesforce, then merges them to create a unified deal view. This ensures each deal is enriched with its latest engagement data for accurate risk analysis.",
+        "height": 560,
+        "width": 480,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1024,
+        256
+      ],
+      "typeVersion": 1,
+      "id": "5b7805ce-348c-4958-a624-7e368f43db76",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Deal Context Building\n\nTransforms raw Salesforce data into structured deal objects by grouping activities per deal, calculating key attributes, and tracking whether all activities are completed. This prepares clean input for AI analysis.",
+        "height": 560,
+        "width": 448,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1536,
+        256
+      ],
+      "typeVersion": 1,
+      "id": "676d002f-97f9-46cb-a30e-fee57556e4b4",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "##  Smart Filtering & Batching\n\nFilters out fully safe deals (100% + active) and processes remaining deals in batches with delay to avoid API overload.",
+        "height": 560,
+        "width": 432,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2016,
+        256
+      ],
+      "typeVersion": 1,
+      "id": "be12faf8-2779-4712-b8e7-6676d9e74039",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "##  AI-Based Risk Prediction\n\nUses Google Gemini to evaluate each deal’s risk level based on probability, activity engagement, and predefined business rules, returning a structured JSON risk assessment.",
+        "height": 560,
+        "width": 448,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2496,
+        256
+      ],
+      "typeVersion": 1,
+      "id": "7455c4a7-a5f2-4e91-bd7e-e3f91de7d3ab",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## AI Response Cleaning & Validation\n\n Cleans the AI output by removing formatting issues, parsing JSON safely, and validating risk levels to ensure consistent and reliable downstream processing.",
+        "height": 544,
+        "width": 448,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2976,
+        256
+      ],
+      "typeVersion": 1,
+      "id": "5ce8b5d9-ceef-45c2-9baf-6a0c670d3467",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## High-Risk Detection & Escalation\n\nFilters only high-risk deals and updates Salesforce with risk insights, then sends a Slack alert to notify stakeholders for immediate action.",
+        "height": 544,
+        "width": 656,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3472,
+        256
+      ],
+      "typeVersion": 1,
+      "id": "bcf5cfe9-92bc-4a63-afa2-04206a032ef6",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "# Deal Escalation Risk Predictor\n\n# How It Work\n\n###  This workflow automatically analyzes Salesforce deals to detect escalation risk using AI. It begins by fetching open opportunities and recent activities, then merges them to create a complete deal-level view. The workflow structures this data into a clean format, including deal value, probability, type, and engagement history.\n\n\n\n# Setup Steps\n\n## Configure Integrations\nConnect Salesforce, Google Gemini, and Slack in n8n.\n\n## Add Trigger\nUse a Manual Trigger .\n\n## Fetch & Merge Data\nRetrieve opportunities and recent activities, then merge them.\n\n## Build Deal Context\nStructure deal data with activity tracking and key fields.\n\n##  Filter & Batch Deals\nFilter safe deals and process remaining ones in batches with delay.\n\n\n## Run AI Analysis\nSend deal data to Gemini for risk prediction.\n\n## Validate Output\nClean and parse AI response into structured JSON.\n\n## Take Action\nUpdate high-risk deals in Salesforce and send Slack alerts.",
+        "height": 1104,
+        "width": 768
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "e932dd6e-29e0-4165-9e4a-130a0a3fa120",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0280fb3e-8b1b-42cf-bf84-41b388148502",
+              "leftValue": "={{ $json.Probability }}",
+              "rightValue": 100,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "928303af-1400-4ffd-9d77-53b0024ca05d",
+              "leftValue": "={{ $json.activities }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2064,
+        528
+      ],
+      "id": "2c3afe12-7c5b-4e08-8cdf-f2229a8fcf4e",
+      "name": "Filter: High Probability & Active Deals"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1792,
+        528
+      ],
+      "id": "2421d3e8-1446-4730-aa8b-1f50d786f695",
+      "name": "Loop Over Opportunities"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c52a8cb6-f1fa-4a69-92b9-575dcd73d499",
+              "name": "slackMessage",
+              "value": "=*High Risk Alert*\n\n*Deal ID:* {{ $('Clean & Validate AI Response').item.json.deal_id }}\n*AI Summary:* {{ $('Clean & Validate AI Response').item.json.summary }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3728,
+        544
+      ],
+      "id": "5aff2e7a-0221-4dac-a71f-3bb5201ea378",
+      "name": "Format Slack Alert Message"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8bf48743-e697-4f5c-b94a-0042ae43e9ee",
+              "leftValue": "={{ $json.risk_level }}",
+              "rightValue": "high",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3152,
+        544
+      ],
+      "id": "19356d17-e83e-433e-a124-dc09199985f9",
+      "name": "Check Risk level"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "U0AP3B0UTMH",
+          "mode": "list",
+          "cachedResultName": "vishakag21"
+        },
+        "text": "={{ $json.slackMessage }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        3952,
+        544
+      ],
+      "id": "c97e9511-d22b-4415-96df-7d46d1d2c338",
+      "name": "Notify High Risk Deal",
+      "webhookId": "c8741002-4e2b-4ccf-97b4-82080ca2dc78",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "lKAQNqNsGCJoONSX",
+          "name": "Slack OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "opportunity",
+        "operation": "update",
+        "opportunityId": "={{ $('Prevent API Overload').item.json.Id }}",
+        "updateFields": {
+          "description": "=High Risk Deal Detected.\nDeal ID: {{ $('Prevent API Overload').item.json.Id }}\nRisk Level: {{ $json.risk_level }}\n\nSummary: {{ $json.summary }}\n\nPricing Risk: {{ $json.pricing_risk }}\nDelivery Risk: {{ $json.delivery_risk }}\nStakeholder Risk: {{ $json.stakeholder_risk }}"
+        }
+      },
+      "type": "n8n-nodes-base.salesforce",
+      "typeVersion": 1,
+      "position": [
+        3504,
+        544
+      ],
+      "id": "9dcfe5e7-31e5-408c-80a0-531456c391ce",
+      "name": "Update High Risk Deal Flag",
+      "credentials": {
+        "salesforceOAuth2Api": {
+          "id": "sC9c1n9XqdOH5TdT",
+          "name": "Salesforce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over all input items\nreturn $input.all().map(item => {\n  const raw = item.json.content?.parts?.[0]?.text;\n\n  // If no content at all\n  if (!raw) {\n    return { json: {\n      deal_id:\"null\",\n      risk_level: \"unknown\",\n      pricing_risk: false,\n      delivery_risk: false,\n      stakeholder_risk: false,\n      summary: \"No response received from AI model\",\n      parse_error: true\n    }};\n  }\n\n  // Remove ```json and ``` markdown fences\n  const cleaned = raw\n    .replace(/```json/gi, '')\n    .replace(/```/g, '')\n    .trim();\n\n  try {\n    const parsed = JSON.parse(cleaned);\n\n    // Validate expected fields exist\n    const validLevels = [\"high\", \"medium\", \"low\"];\n    if (!validLevels.includes(parsed.risk_level)) {\n      parsed.risk_level = \"unknown\";\n      parsed.parse_error = true;\n      parsed.summary = parsed.summary || \"AI returned invalid risk level\";\n    }\n\n    return { json: parsed };\n\n  } catch (err) {\n    // AI response could not be parsed\n    return { json: {\n      risk_level: \"unknown\",\n      pricing_risk: false,\n      delivery_risk: false,\n      stakeholder_risk: false,\n      summary: \"AI response could not be parsed\",\n      parse_error: true,\n      raw_response: raw.slice(0, 300) // first 300 chars for debugging\n    }};\n  }\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2816,
+        544
+      ],
+      "id": "6490bacd-d4a8-4012-803e-9217e418fe4e",
+      "name": "Clean & Validate AI Response"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a Senior Sales Risk Analyst.\n\nAnalyze the following Salesforce deal and determine if it is at risk of escalation.\n\nConsider:\n- Low probability deals (below 40% is concerning)\n- Lack of recent or meaningful activities\n- Type of customer (new vs existing)\n- Engagement quality (number and type of activities)\n\nDeal Details:\n- Deal ID: {{ $json.Id }}\n- Amount: {{ $json.Amount }}\n- Probability: {{ $json.Probability }}%\n- Type: {{ $json.Type }}\n- Activity Count: {{ $json.activities.length }}\n\nActivities:\n{{ JSON.stringify($json.activities) }}\n\nInstructions:\n- Assess overall risk level (high, medium, low)\n- Identify specific risks: pricing_risk, delivery_risk, stakeholder_risk\n- Provide a short, clear one-line summary explaining the reason\n\nOutput Rules:\n- Return ONLY valid JSON — no markdown fences, no explanation outside JSON\n- Use this exact format:\n\n{\n  \"deal_id\": \"{{ $json.Id }}\",\n  \"risk_level\": \"high | medium | low\",\n  \"pricing_risk\": true | false,\n  \"delivery_risk\": true | false,\n  \"stakeholder_risk\": true | false,\n  \"summary\": \"one concise sentence explaining the risk\"\n}\n\nYou are a rule-based system.\n\nRULES:\n1. If Probability = 100 AND allActivitiesCompleted = true → LOW risk\n2. If Probability < 30 → HIGH risk\n3. Else → MEDIUM risk\n4.If risk_level = high → at least one of (pricing_risk, delivery_risk, stakeholder_risk) MUST be true.\n\nDO NOT break rules.\n\nReturn JSON only."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        2496,
+        560
+      ],
+      "id": "0ed0f72f-56cf-43fd-b6d5-e1203f1151a2",
+      "name": "Predict Deal Escalation Risk",
+      "retryOnFail": false,
+      "executeOnce": false,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Pp8fhk0h83q9i2lx",
+          "name": "sample2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2304,
+        544
+      ],
+      "id": "d8ebae26-a386-4a70-bd32-cd1439f1728c",
+      "name": "Prevent API Overload",
+      "webhookId": "fdcc9477-14be-468f-ad91-e30f78b92662",
+      "retryOnFail": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Start Deal Risk Analysis": {
+      "main": [
+        [
+          {
+            "node": "Fetch Open Opportunities",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Recent Activities (Last 30 Days)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Open Opportunities": {
+      "main": [
+        [
+          {
+            "node": "Map Opportunities with Activities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Recent Activities (Last 30 Days)": {
+      "main": [
+        [
+          {
+            "node": "Map Opportunities with Activities",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Map Opportunities with Activities": {
+      "main": [
+        [
+          {
+            "node": "Build Deal Context for Risk Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Deal Context for Risk Analysis": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter: High Probability & Active Deals": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Prevent API Overload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Opportunities": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Filter: High Probability & Active Deals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Risk level": {
+      "main": [
+        [
+          {
+            "node": "Update High Risk Deal Flag",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Slack Alert Message": {
+      "main": [
+        [
+          {
+            "node": "Notify High Risk Deal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update High Risk Deal Flag": {
+      "main": [
+        [
+          {
+            "node": "Format Slack Alert Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean & Validate AI Response": {
+      "main": [
+        [
+          {
+            "node": "Check Risk level",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Predict Deal Escalation Risk": {
+      "main": [
+        [
+          {
+            "node": "Clean & Validate AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prevent API Overload": {
+      "main": [
+        [
+          {
+            "node": "Predict Deal Escalation Risk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify High Risk Deal": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e39eecf7-ec94-478d-9bf6-390af53f8f53",
+  "meta": {
+    "instanceId": "f27739ea7ff3a87f7bf9c66c729159b4bef14582f083ae2ee9bbd27cecc68161"
+  },
+  "id": "lSCiZfz9WhjHCeQg",
+  "tags": []
+}
